@@ -27,4 +27,8 @@ class EmployeeRepo @Inject() (protected val dbConfigProvider: DatabaseConfigProv
   def listAll: Future[Seq[Employee]] = {
     dbConfig.db.run(employees.result)
   }
+
+  def addEmployee(employee: Employee): Future[Int] = {
+    dbConfig.db.run(employees += employee)
+  }
 }
