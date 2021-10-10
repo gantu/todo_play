@@ -27,4 +27,10 @@ class EmployeeRepo @Inject() (protected val dbConfigProvider: DatabaseConfigProv
   def listAll: Future[Seq[Employee]] = {
     dbConfig.db.run(employees.result)
   }
+
+  def addEmployee(employee: Employee): Future[String] = {
+    dbConfig.db.run(employees += employee).map(res => "User successfully inserted!").recover{
+      case ex: Exception => ex.getCause.getMessage
+    }
+  }
 }
