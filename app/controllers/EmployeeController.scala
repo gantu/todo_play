@@ -1,46 +1,41 @@
 package controllers
 
 import com.google.inject.Inject
+import com.rallyhealth.weejson.v1.jackson.{FromJson, ToJson}
+import com.rallyhealth.weepickle.v1.WeePickle.{FromScala, FromTo, ToScala, macroFromTo}
+import com.rallyhealth.weepickle.v1.core.TransformException
 import models.Employee
-import play.api.libs.functional.syntax.toFunctionalBuilderOps
-import play.api.libs.json.JsError.toJson
-import play.api.libs.json.{JsError, JsPath, JsSuccess, JsValue, Json, Reads, Writes}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Request}
 import services.EmployeeService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+case class MyStatus(code: Int, message: String)
+
 class EmployeeController @Inject() (cc: ControllerComponents, employeeService: EmployeeService)
   extends AbstractController(cc){
 
-  implicit val employeeWrites = new Writes[Employee] {
-    override def writes(employee: Employee): JsValue = Json.obj(
-      "id" -> employee.id,
-      "firstName" -> employee.firstName,
-      "lastName" -> employee.lastName,
-      "email" -> employee.email
-    )
+  implicit val rw: FromTo[Employee] = macroFromTo
+  implicit val rwStatus: FromTo[MyStatus] = macroFromTo
+
+  def list = Action.async { request =>
+    employeeService.listAll.map(employees => Ok(FromScala(employees).transform(ToJson.string)))
   }
 
-  implicit val employeeReads: Reads[Employee] = (
-    (JsPath \ "id").read[Long] and
-      (JsPath \ "firstName").read[String] and
-      (JsPath \ "lastName").read[String] and
-      (JsPath \ "email").read[String]
-    )(Employee.apply _)
-
-  def list = Action.async { implicit request: Request[AnyContent] =>
-    employeeService.listAll.map(employees => Ok(Json.toJson(employees)))
-  }
-
-  def add = Action(parse.json) { request =>
-    val maybeEmployee = request.body.validate
-    maybeEmployee match {
-      case JsSuccess(employee, _) => {
+  def add = Action(parse.anyContent) { request =>
+    val jsonEmployee = request.body.asJson
+    jsonEmployee match {
+      case Some(value) => try {
+        val employee = FromJson(value.toString).transform(ToScala[Employee])
         employeeService.addEmployee(employee)
-        Ok(Json.obj("status" -> "OK", "message" -> "Successfully inserted!"))
+        Ok(FromScala(MyStatus(200, "Inserted Successfully")).transform(ToJson.string))
+      } catch {
+        case e: TransformException => BadRequest(FromScala(MyStatus(400, "Problem in parsing in JSON!")).transform(ToJson.string))
       }
-      case error: JsError => BadRequest(Json.obj("status" -> "Error", "message" -> toJson(error)))
+      case None => BadRequest(FromScala(MyStatus(400, "No data as Json!")).transform(ToJson.string))
     }
+
   }
 }
+
+

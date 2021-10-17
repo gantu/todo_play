@@ -1,13 +1,14 @@
 package models
 
-case class Employee(id: Long, firstName: String, lastName:String, email: String)
-
 import com.google.inject.Inject
+import com.rallyhealth.weepickle.v1.WeePickle.{macroFromTo, FromTo}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
+
+case class Employee(id: Long, firstName: String, lastName:String, email: String)
 
 class EmployeeTableDef(tag: Tag) extends Table[Employee](tag, "employee"){
 
