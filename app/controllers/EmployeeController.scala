@@ -34,7 +34,10 @@ class EmployeeController @Inject() (cc: ControllerComponents, employeeService: E
       }
       case None => BadRequest(FromScala(MyStatus(400, "No data as Json!")).transform(ToJson.string))
     }
+  }
 
+  def listEmployeesOfDepartment(departmentId: Long) = Action.async{request =>
+    employeeService.listEmployeesOfDepartment(departmentId).map(employees => Ok(FromScala(employees).transform(ToJson.string)))
   }
 }
 

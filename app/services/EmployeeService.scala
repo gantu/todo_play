@@ -10,4 +10,6 @@ class EmployeeService @Inject() (employeeRepo: EmployeeRepo){
   def listAll : Future[Seq[Employee]] = employeeRepo.listAll
 
   def addEmployee(employee: Employee): Future[Int] = employeeRepo.addEmployee(employee)
+
+  def listEmployeesOfDepartment(departmentId: Long): Future[Seq[Employee]] = employeeRepo.listEmployeeByDepartment(departmentId)
 }
