@@ -17,6 +17,7 @@ class EmployeeController @Inject() (cc: ControllerComponents, employeeService: E
 
   implicit val rw: FromTo[Employee] = macroFromTo
   implicit val rwStatus: FromTo[MyStatus] = macroFromTo
+//  implicit val rwMultiple: FromTo[Seq[Employee]] = macroFromTo
 
   def list = Action.async { request =>
     employeeService.listAll.map(employees => Ok(FromScala(employees).transform(ToJson.string)))
@@ -28,6 +29,20 @@ class EmployeeController @Inject() (cc: ControllerComponents, employeeService: E
       case Some(value) => try {
         val employee = FromJson(value.toString).transform(ToScala[Employee])
         employeeService.addEmployee(employee)
+        Ok(FromScala(MyStatus(200, "Inserted Successfully")).transform(ToJson.string))
+      } catch {
+        case e: TransformException => BadRequest(FromScala(MyStatus(400, "Problem in parsing in JSON!")).transform(ToJson.string))
+      }
+      case None => BadRequest(FromScala(MyStatus(400, "No data as Json!")).transform(ToJson.string))
+    }
+  }
+
+  def addMultipleEmployees = Action(parse.anyContent) { request =>
+    val jsonEmployee = request.body.asJson
+    jsonEmployee match {
+      case Some(value) => try {
+        val multipleEmployee = FromJson(value.toString).transform(ToScala[Seq[Employee]])
+        employeeService.addMultipleEmployees(multipleEmployee)
         Ok(FromScala(MyStatus(200, "Inserted Successfully")).transform(ToJson.string))
       } catch {
         case e: TransformException => BadRequest(FromScala(MyStatus(400, "Problem in parsing in JSON!")).transform(ToJson.string))
