@@ -47,4 +47,8 @@ class EmployeeRepo @Inject() (protected val dbConfigProvider: DatabaseConfigProv
   def addEmployee(employee: Employee): Future[Int] = {
     dbConfig.db.run(employees += employee)
   }
+
+  def addMultipleEmployees(employee: Seq[Employee]): Future[Option[Int]] = {
+    dbConfig.db.run(employees ++= employee)
+  }
 }

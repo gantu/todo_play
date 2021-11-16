@@ -13,3 +13,8 @@ GET     /employees                  controllers.EmployeeController.list
 GET     /employees/:departmentId    controllers.EmployeeController.listEmployeesOfDepartment(departmentId:Long)
 
 POST    /employees                  controllers.EmployeeController.add
+
+POST    /multiEmployees                  controllers.EmployeeController.addMultipleEmployees
+
+GET     /departments                controllers.DepartmentController.listOfDepartments
+POST    /department               controllers.DepartmentController.addDepartment
